@@ -28,7 +28,7 @@ void AABCharacterNonPlayer::SetDead()
 
 	GetWorld()->GetTimerManager().SetTimer(
 		TimerHandle,
-		FTimerDelegate::CreateLambda([&]() /* ->void */
+		FTimerDelegate::CreateLambda([this]() /* ->void */
 			{
 				Destroy();
 			}

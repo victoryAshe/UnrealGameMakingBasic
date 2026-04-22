@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Interface/ABAnimationAttackInterface.h"
+#include "Interface/ABCharacterWidgetInterface.h"
 #include "ABCharacterBase.generated.h"
 
 // 열거형 (입력 컨트롤을 관리하기 위함).
@@ -27,7 +28,8 @@ enum class ECharacterControlType : uint8
 UCLASS()
 class ARENABATTLE_API AABCharacterBase 
 	: public ACharacter,
-	public IABAnimationAttackInterface
+	public IABAnimationAttackInterface,
+	public IABCharacterWidgetInterface
 {
 	GENERATED_BODY()
 
@@ -44,6 +46,12 @@ public:
 		struct FDamageEvent const& DamageEvent, 
 		class AController* EventInstigator, 
 		AActor* DamageCauser) override;
+
+	// Inherited via IABCharacterWidgetInterface
+	virtual void SetupCharacterWidget(UABUserWidget* InUserWidget) override;
+
+	// 모든 Component의 초기화가 끝나면 실행됨.
+	virtual void PostInitializeComponents() override;
 
 	// Dead.
 protected:
@@ -113,4 +121,12 @@ protected:
 
 	// 죽은 후 대기할 시간 값. (단위: 초).
 	float DeadEventDelayTime = 5.0f;
+
+protected:
+	// Stat Component.
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Stat)
+	TObjectPtr<class UABCharacterStatComponent> Stat;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Widget)
+	TObjectPtr<class UABWidgetComponent> HpBar;
 };

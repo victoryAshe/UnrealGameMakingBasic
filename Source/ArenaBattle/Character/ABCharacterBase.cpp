@@ -8,6 +8,11 @@
 #include "Physics/ABCollision.h"
 #include "Engine/DamageEvents.h"
 
+#include "ChracterStat/ABCharacterStatComponent.h"
+#include "UI/ABWidgetComponent.h"
+#include "UI/ABUserWidget.h"
+#include "UI/ABHpBarWidget.h"
+
 // Sets default values
 AABCharacterBase::AABCharacterBase()
 {
@@ -100,6 +105,32 @@ AABCharacterBase::AABCharacterBase()
 	if (DeadMontageRef.Succeeded())
 	{
 		DeadMontage = DeadMontageRef.Object;
+	}
+
+	// Component 생성.
+	Stat = CreateDefaultSubobject<UABCharacterStatComponent>(TEXT("Stat"));
+	HpBar = CreateDefaultSubobject<UABWidgetComponent>(TEXT("Widget"));
+
+	// Component 설정.
+	// 계층 및 위치 설정
+	HpBar->SetupAttachment(GetMesh());
+	HpBar->SetRelativeLocation(FVector(0.0f, 0.0f, 180.0f));
+
+	// 사용할 위젯 설정 
+	static ConstructorHelpers::FClassFinder<UABUserWidget>HpBarWidgetRef(
+		TEXT("/Game/UI/WBP_HpBar.WBP_HpBar_C")
+	);
+
+	if (HpBarWidgetRef.Succeeded())
+	{
+		// WidgetComponent에서 사용할 WidgetClass 지정.
+		HpBar->SetWidgetClass(HpBarWidgetRef.Class);
+		// Widget이 그려질 공간 설정 (3D/2D)
+		HpBar->SetWidgetSpace(EWidgetSpace::Screen);
+		// Widget이 그려질 크기.
+		HpBar->SetDrawSize(FVector2D(150.0f, 15.0f));
+		// Widget Collision 끄기.
+		HpBar->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 }
 
@@ -267,6 +298,36 @@ void AABCharacterBase::ComboCheck()
 	}
 }
 
+void AABCharacterBase::SetupCharacterWidget(UABUserWidget* InUserWidget)
+{
+	// 의존성 주입 Dependency Injection(Inversion)
+	// : 객체지향 SOLID의 D에 해당.
+	// Character 입장에서는, 
+	// 누군가 이 함수를 호출하면서 UABUserWidget 정보를 전달.
+
+	UABHpBarWidget* HpBarWidget = Cast<UABHpBarWidget>(InUserWidget);
+	if (HpBarWidget)
+	{
+		// 체력 관련 값 설정.
+		HpBarWidget->SetMaxHp(Stat->GetMaxHp());
+		HpBarWidget->UpdateHpBar(Stat->GetCurrentHp());
+
+		// Delegate 등록.
+		Stat->OnHpChanged.AddUObject(
+			HpBarWidget,
+			&UABHpBarWidget::UpdateHpBar
+		);
+	}
+}
+
+void AABCharacterBase::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	// Stat Component의 Dead Delegate에 함수 연결.(Binding).
+	Stat->OnHpZero.AddUObject(this, &AABCharacterBase::SetDead);
+}
+
 
 void AABCharacterBase::AttackHitCheck()
 {
@@ -370,7 +431,8 @@ float AABCharacterBase::TakeDamage(float DamageAmount, FDamageEvent const& Damag
 	);
 
 	// 죽음 설정. (한 번만 맞도록 죽도록)
-	SetDead();
+	//SetDead();
+	Stat->ApplyDamage(DamageAmount);
 
 	return DamageAmount;
 }
@@ -388,6 +450,9 @@ void AABCharacterBase::SetDead()
 
 	// Collision 끄기.
 	SetActorEnableCollision(false);
+
+	// 죽으면 HPBar 사라지도록 처리.
+	HpBar->SetHiddenInGame(true);
 }
 
 void AABCharacterBase::PlayDeadAnimation()
