@@ -15,6 +15,15 @@ enum class ECharacterControlType : uint8
 	Quarter
 };
 
+// 다중 상속: 여러 부모를 상속하는 형태.
+// -> 문제를 일으킬 가능성이 있으므로, 요즘은 사용이 비권장.
+// -> "클래스 상속"은 하나만 허용
+// -> "나머지 다중 상속은 모두 Interface(순소 가상함수만 갖는 class)만"
+// -> 순수 가상함수를 가진 class는 그 자체로는 instance(개체)를 생성할 수 없음.
+// -> 함수 본문이 없기 때문! 자식 개체가 받아서 구현했을 때만 개체 생성 가능.
+// -> 함수 본문이 없으면 왜 안될까? 
+//    => 선언만 있고 본문이 없기 때문에, 링커가 연결을 못해서 링커 오류가 남.
+
 UCLASS()
 class ARENABATTLE_API AABCharacterBase 
 	: public ACharacter,
@@ -93,4 +102,15 @@ protected:
 	// 콤보 점프를 판정할 때 사용할 플래그.
 	UPROPERTY(VisibleAnywhere, Category = Attack)
 	bool bHasNextComboCommand = false;
+
+
+
+	// Dead 관련.
+protected:
+	// 죽음 Montage.
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Dead)
+	TObjectPtr<class UAnimMontage> DeadMontage;
+
+	// 죽은 후 대기할 시간 값. (단위: 초).
+	float DeadEventDelayTime = 5.0f;
 };

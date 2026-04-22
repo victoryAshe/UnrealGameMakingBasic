@@ -90,6 +90,17 @@ AABCharacterBase::AABCharacterBase()
 	{
 		ComboActionData = ComboActionDataRef.Object;
 	}
+
+
+	// Dead Montage 기본 값 설정.
+	static ConstructorHelpers::FObjectFinder<UAnimMontage>
+		DeadMontageRef(
+			TEXT("/Game/ArenaBattle/Animation/AM_Dead.AM_Dead")
+		);
+	if (DeadMontageRef.Succeeded())
+	{
+		DeadMontage = DeadMontageRef.Object;
+	}
 }
 
 void AABCharacterBase::SetCharacterContolData(
@@ -366,9 +377,29 @@ float AABCharacterBase::TakeDamage(float DamageAmount, FDamageEvent const& Damag
 
 void AABCharacterBase::SetDead()
 {
+	// 죽었을 때 필요한 정리 작업.
 
+
+	// 무브먼트 끄기.
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+
+	// 죽는 모션 재생. (Montage 재생 요청).
+	PlayDeadAnimation();
+
+	// Collision 끄기.
+	SetActorEnableCollision(false);
 }
 
 void AABCharacterBase::PlayDeadAnimation()
 {
+	// Montage 재생을 위해 Anim Instance 가져오기.
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance)
+	{
+		// 재생 중일 수 있는 Montage 모두 종료.
+		AnimInstance->StopAllMontages(0.0f); // Blend 시간 값.
+
+		// 죽음 Montage 재생.
+		AnimInstance->Montage_Play(DeadMontage);
+	}
 }
