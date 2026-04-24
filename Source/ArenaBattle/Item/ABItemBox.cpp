@@ -11,6 +11,9 @@
 #include "Interface/ABCharacterItemInterface.h"
 #include "ABItemData.h"
 
+#include "Engine/AssetManager.h"
+
+
 // Sets default values
 AABItemBox::AABItemBox()
 {
@@ -72,6 +75,43 @@ AABItemBox::AABItemBox()
 		// 바로 재생되지 않도록 설정.
 		Effect->bAutoActivate = false;
 	}
+}
+
+void AABItemBox::PostInitializeComponents()
+{
+
+	Super::PostInitializeComponents();
+
+	// PrimaryAssetId 목록을 활용한 랜덤 아이템 데이터 설정.
+	UAssetManager& Manager = UAssetManager::Get();
+
+	// 애셋 목록 받아오기.
+	TArray<FPrimaryAssetId> Assets;
+	Manager.GetPrimaryAssetIdList("ABItemData", Assets);
+	// 예외처리.
+	ensureAlways(Assets.Num() > 0);
+
+	// 랜덤 인덱스 선택.
+	int32 RandomIndex = FMath::RandRange(0, Assets.Num() - 1);
+
+	// 소프트 레퍼런스로 애셋을 참조.
+	// FSoftObjectPtr 소프트 레퍼런스는 일종의 경로 값이기 때문에
+	// 애셋을 사용하려면 명시적으로 로드가 필요함.
+	FSoftObjectPtr AssetPtr(
+		Manager.GetPrimaryAssetPath(Assets[RandomIndex])
+	);
+
+	// 애셋 로드.
+	if (AssetPtr.IsPending())
+	{
+		AssetPtr.LoadSynchronous();
+	}
+
+	// 로드한 애셋을 아이템으로 설정.
+	Item = Cast<UABItemData>(AssetPtr.Get());
+
+	// 제대로 설정됐는지 확인.
+	ensureAlways(Item);
 }
 
 void AABItemBox::OnOverlapBegin(

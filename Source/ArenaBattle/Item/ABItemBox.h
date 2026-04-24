@@ -15,6 +15,13 @@ public:
 	// Sets default values for this actor's properties
 	AABItemBox();
 
+	// Getter.
+	FORCEINLINE class UBoxComponent* GetTrigger() { return Trigger; }
+
+protected:
+	// 컴포넌트 초기화가 끝나면 호출되는 이벤트 함수.
+	virtual void PostInitializeComponents() override;
+
 protected:
 	UFUNCTION()
 	void OnOverlapBegin(
