@@ -25,7 +25,7 @@ AABFountain::AABFountain()
 
 	// Asset 검색 후 설정.
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> FountainBodyMesh(
-		TEXT("/Game/Environment/Props/SM_Plains_Castle_Fountain_01.SM_Plains_Castle_Fountain_01")
+		TEXT("/Game/ArenaBattle/Environment/Props/SM_Plains_Castle_Fountain_01.SM_Plains_Castle_Fountain_01")
 		);
 
 	if (FountainBodyMesh.Succeeded())
@@ -34,7 +34,7 @@ AABFountain::AABFountain()
 	}
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> WaterMesh(
-		TEXT("/Game/Environment/Props/SM_Plains_Fountain_02.SM_Plains_Fountain_02")
+		TEXT("/Game/ArenaBattle/Environment/Props/SM_Plains_Fountain_02.SM_Plains_Fountain_02")
 		);
 
 	if (WaterMesh.Succeeded())

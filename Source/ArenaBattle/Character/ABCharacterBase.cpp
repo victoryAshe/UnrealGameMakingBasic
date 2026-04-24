@@ -13,6 +13,9 @@
 #include "UI/ABUserWidget.h"
 #include "UI/ABHpBarWidget.h"
 
+#include "Item/ABItemData.h"
+#include "Item/ABWeaponItemData.h"
+
 // Sets default values
 AABCharacterBase::AABCharacterBase()
 {
@@ -118,7 +121,7 @@ AABCharacterBase::AABCharacterBase()
 
 	// 사용할 위젯 설정 
 	static ConstructorHelpers::FClassFinder<UABUserWidget>HpBarWidgetRef(
-		TEXT("/Game/UI/WBP_HpBar.WBP_HpBar_C")
+		TEXT("/Game/ArenaBattle/UI/WBP_HpBar.WBP_HpBar_C")
 	);
 
 	if (HpBarWidgetRef.Succeeded())
@@ -132,6 +135,32 @@ AABCharacterBase::AABCharacterBase()
 		// Widget Collision 끄기.
 		HpBar->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
+
+	// Item Action 설정.
+	TakeItemActions.Add(
+		FOnTakeItemDelegate::CreateUObject(
+			this, &AABCharacterBase::EquipWeapon
+		)
+	);
+
+	TakeItemActions.Add(
+		FOnTakeItemDelegate::CreateUObject(
+			this, &AABCharacterBase::DrinkPotion
+		)
+	);
+
+	TakeItemActions.Add(
+		FOnTakeItemDelegate::CreateUObject(
+			this, &AABCharacterBase::ReadScroll
+		)
+	);
+
+	// Weapon Component.
+	Weapon = CreateDefaultSubobject<USkeletalMeshComponent>(
+		TEXT("Weapon")
+	);
+	// 계층 설정.
+	Weapon->SetupAttachment(GetMesh(), TEXT("hand_rSocket"));
 }
 
 void AABCharacterBase::SetCharacterContolData(
@@ -297,6 +326,54 @@ void AABCharacterBase::ComboCheck()
 		}
 	}
 }
+
+void AABCharacterBase::TakeItem(UABItemData* InItemData)
+{
+	// 아이템 정보가 넘어왔으면 처리.
+	if (InItemData)
+	{
+		// 아이템 종류에 맞게 바인딩(연결)된 함수 호출.
+		// 0: Weapon, 1: Potion, 2: Scroll (열겨형 순서에 맞게 지정함).
+		TakeItemActions[(uint8)InItemData->Type].ExecuteIfBound(
+			InItemData
+		);
+	}
+}
+
+
+void AABCharacterBase::DrinkPotion(UABItemData* InItemData)
+{
+	UE_LOG(LogTemp, Log, TEXT("Drink Potion"));
+}
+
+void AABCharacterBase::EquipWeapon(UABItemData* InItemData)
+{
+	// 무기 아이템으로 형변환 후 아이템 획득 처리.
+	// 다운캐스팅-실패할 수 있음.
+	UABWeaponItemData* WeaponItemData
+		= Cast<UABWeaponItemData>(InItemData);
+	if (WeaponItemData)
+	{
+		// 무기 애셋 로드.
+		// 무기 애셋이 로드됐는지 확인해보고 안됐으면 로딩.
+		if (WeaponItemData->WeaponMesh.IsPending())
+		{
+			// 동기 방식으로 메시 애셋 로드.
+			WeaponItemData->WeaponMesh.LoadSynchronous();
+		}
+
+		// 무기 컴포넌트에 메시 설정.
+		// 아래 두 줄은 동일하게 작동.
+		Weapon->SetSkeletalMesh(WeaponItemData->WeaponMesh.Get());
+		//Weapon->SetSkeletalMesh(WeaponItemData->WeaponMesh);
+	}
+}
+
+void AABCharacterBase::ReadScroll(UABItemData* InItemData)
+{
+	UE_LOG(LogTemp, Log, TEXT("Read Scroll"));
+}
+
 
 void AABCharacterBase::SetupCharacterWidget(UABUserWidget* InUserWidget)
 {

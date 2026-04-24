@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "Interface/ABAnimationAttackInterface.h"
 #include "Interface/ABCharacterWidgetInterface.h"
+#include "Interface/ABCharacterItemInterface.h"
 #include "ABCharacterBase.generated.h"
 
 // 열거형 (입력 컨트롤을 관리하기 위함).
@@ -15,6 +16,9 @@ enum class ECharacterControlType : uint8
 	Shoulder,
 	Quarter
 };
+
+// 아이템 획득 처리를 위한 Delegate 선언.
+DECLARE_DELEGATE_OneParam(FOnTakeItemDelegate, class UABItemData* /* InItemData */)
 
 // 다중 상속: 여러 부모를 상속하는 형태.
 // -> 문제를 일으킬 가능성이 있으므로, 요즘은 사용이 비권장.
@@ -29,7 +33,8 @@ UCLASS()
 class ARENABATTLE_API AABCharacterBase 
 	: public ACharacter,
 	public IABAnimationAttackInterface,
-	public IABCharacterWidgetInterface
+	public IABCharacterWidgetInterface,
+	public IABCharacterItemInterface
 {
 	GENERATED_BODY()
 
@@ -86,6 +91,18 @@ protected:
 	// 시간 전에 공격 입력이 제대로 들어왔는지 확인.
 	void ComboCheck();
 
+	// 아이템 습득 시 호출될 함수 (Interface를 통해).
+	virtual void TakeItem(UABItemData* InItemData) override;
+
+	// Item 종류마다 처리될 함수.
+	virtual void DrinkPotion(UABItemData* InItemData);
+	virtual void EquipWeapon(UABItemData* InItemData);
+	virtual void ReadScroll(UABItemData* InItemData);
+
+	// Item 처리를 위한 Delegate 관리 배열.
+	TArray<FOnTakeItemDelegate> TakeItemActions;
+
+
 protected:
 	// 컨트롤 타입 별 데이터 관리를 위한 맵.
 	UPROPERTY(EditAnywhere, Category = CharacterControl)
@@ -129,4 +146,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Widget)
 	TObjectPtr<class UABWidgetComponent> HpBar;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment)
+	TObjectPtr<class USkeletalMeshComponent> Weapon;
 };
