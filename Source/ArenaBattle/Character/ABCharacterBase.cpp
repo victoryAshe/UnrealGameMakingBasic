@@ -8,7 +8,7 @@
 #include "Physics/ABCollision.h"
 #include "Engine/DamageEvents.h"
 
-#include "ChracterStat/ABCharacterStatComponent.h"
+#include "CharacterStat/ABCharacterStatComponent.h"
 #include "UI/ABWidgetComponent.h"
 #include "UI/ABUserWidget.h"
 #include "UI/ABHpBarWidget.h"
@@ -250,6 +250,13 @@ void AABCharacterBase::ComboActionEnd(
 
 	// 몽타주 재생이 종료되면 캐릭터 이동을 다시 원상 복구.
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+
+	// 공격이 끝나면 NotifyComboActionEnd() 호출.
+	NotifyComboActionEnd();
+}
+
+void AABCharacterBase::NotifyComboActionEnd()
+{
 }
 
 void AABCharacterBase::SetComboCheckTimer()
@@ -415,7 +422,7 @@ void AABCharacterBase::AttackHitCheck()
 	const float AttackRange = Stat->GetTotalStat().AttackRange;
 
 	// Trace에 사용할 구체의 반지름
-	const float AttackRadius = 30.0f;
+	const float AttackRadius = Stat->GetAttackRadius();
 
 	// Collision에 사용할 Collision Parameter 설정.
 	// 스스로를 제외해달라고 설정하기 위함!

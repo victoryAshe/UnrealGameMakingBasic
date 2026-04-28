@@ -17,4 +17,8 @@ class ARENABATTLE_API UBTTaskNode_Attack : public UBTTaskNode
 public:
 	UBTTaskNode_Attack();
 	
+protected:
+	virtual EBTNodeResult::Type ExecuteTask(
+		UBehaviorTreeComponent& OwnerComp,
+		uint8* NodeMemory) override;
 };

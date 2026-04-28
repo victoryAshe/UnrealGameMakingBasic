@@ -6,6 +6,11 @@
 #include "UObject/Interface.h"
 #include "ABCharacterAIInterface.generated.h"
 
+
+// 공격 종료 델리게이트 선언.
+DECLARE_DELEGATE(FAICharacterAttackFinished);
+
+
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UABCharacterAIInterface : public UInterface
@@ -27,4 +32,12 @@ public:
 	virtual float GetAIDetectRange() = 0;
 	virtual float GetAIAttackRange() = 0;
 	virtual float GetAITurnSpeed() = 0;
+
+	// Task에서 공격 명령을 전달할 때 사용하는 함수.
+	virtual void AttackByAI() = 0;
+
+	// 캐릭터에서 델리게이트를 넘길 때 사용할 함수.
+	virtual void SetAIAttackDelegate(
+		const FAICharacterAttackFinished& InOnAttackFinished
+	) = 0;
 };
