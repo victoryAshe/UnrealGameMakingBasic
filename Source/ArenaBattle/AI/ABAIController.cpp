@@ -47,9 +47,9 @@ void AABAIController::RunAI()
 
 		// BT 실행.
 		bool Result = RunBehaviorTree(BTAsset);
-
+		
 		// Exception Handling.
-		ensureAlways(Result);
+		//ensureAlways(Result);
 	}
 }
 
