@@ -149,4 +149,8 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Equipment)
 	TObjectPtr<class USkeletalMeshComponent> Weapon;
+
+	public:
+		int32 GetLevel() const;
+		void SetLevel(int32 InNewLevel);
 };

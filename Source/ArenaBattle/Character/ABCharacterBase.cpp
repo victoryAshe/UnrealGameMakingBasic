@@ -215,7 +215,7 @@ void AABCharacterBase::ComboActionBegin()
 	if (AnimInstance)
 	{
 		// 몽타주 재생 속도.
-		const float AttackSpeedRate = 1.0f;
+		const float AttackSpeedRate = Stat->GetTotalStat().AttackSpeed;;
 
 		// 몽타주 재생.
 		AnimInstance->Montage_Play(ComboAttackMontage, AttackSpeedRate);
@@ -263,7 +263,7 @@ void AABCharacterBase::SetComboCheckTimer()
 	);
 
 	// 애니메이션 재생 속도도 고려(배속).
-	const float AttackSpeedRate = 1.0f;
+	const float AttackSpeedRate = Stat->GetTotalStat().AttackSpeed;
 
 	// 타이머 설정에 사용할 시간 값.
 	// 콤보 액션 데이터에는 프레임 값이 설정되어 있음.
@@ -366,6 +366,9 @@ void AABCharacterBase::EquipWeapon(UABItemData* InItemData)
 		// 아래 두 줄은 동일하게 작동.
 		Weapon->SetSkeletalMesh(WeaponItemData->WeaponMesh.Get());
 		//Weapon->SetSkeletalMesh(WeaponItemData->WeaponMesh);
+
+		// 무기 아이템 데이터가 가지는 부가 스탯 설정.
+		Stat->SetModifierStat(WeaponItemData->ModifierStat);
 	}
 }
 
@@ -386,7 +389,7 @@ void AABCharacterBase::SetupCharacterWidget(UABUserWidget* InUserWidget)
 	if (HpBarWidget)
 	{
 		// 체력 관련 값 설정.
-		HpBarWidget->SetMaxHp(Stat->GetMaxHp());
+		HpBarWidget->SetMaxHp(Stat->GetTotalStat().MaxHp);
 		HpBarWidget->UpdateHpBar(Stat->GetCurrentHp());
 
 		// Delegate 등록.
@@ -409,7 +412,7 @@ void AABCharacterBase::PostInitializeComponents()
 void AABCharacterBase::AttackHitCheck()
 {
 	// 공격 범위 상수.
-	const float AttackRange = 100.0f;
+	const float AttackRange = Stat->GetTotalStat().AttackRange;
 
 	// Trace에 사용할 구체의 반지름
 	const float AttackRadius = 30.0f;
@@ -455,7 +458,7 @@ void AABCharacterBase::AttackHitCheck()
 	if (HitDetected)
 	{
 		// 전달할 데미지 양.
-		const float Damage = 30.0f;
+		const float Damage = Stat->GetTotalStat().Attack;
 		
 		// Damage Event 변수.
 		FDamageEvent DamageEvent;
@@ -488,7 +491,7 @@ void AABCharacterBase::AttackHitCheck()
 		CapsuleHalfHeight,		// 그릴 Capsule의 높이.
 		AttackRadius,			// 그릴 Capsule의 반지름.
 		FRotationMatrix::MakeFromZ(GetActorForwardVector()).ToQuat(), // 옆으로 뒤집기
-									// 앞방향으로 Z축을 새로 만들어주고, Quaternion으로 변환.
+								// 앞방향으로 Z축을 새로 만들어주고, Quaternion으로 변환.
 		DrawColor,				// 그릴 색상
 		false,					// 지속할 것인지
 		5.0f					// 몇 초 동안 그릴 것인지.
@@ -544,4 +547,15 @@ void AABCharacterBase::PlayDeadAnimation()
 		// 죽음 Montage 재생.
 		AnimInstance->Montage_Play(DeadMontage);
 	}
+}
+
+
+int32 AABCharacterBase::GetLevel() const
+{
+	return Stat->GetCurrentLevel();
+}
+
+void AABCharacterBase::SetLevel(int32 InNewLevel)
+{
+	Stat->SetLevelStat(InNewLevel);
 }

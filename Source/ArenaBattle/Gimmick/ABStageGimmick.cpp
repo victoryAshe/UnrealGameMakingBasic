@@ -188,7 +188,7 @@ void AABStageGimmick::OnGateTriggerBeginOverlap(
 	const FHitResult& SweepResult)
 {
 	// 부딪힌 문(Gate)의 방향을 확인해서, 
-// 적절한 소켓 위치에 새로운 스테이지 액터 생성.
+	// 적절한 소켓 위치에 새로운 스테이지 액터 생성.
 
 // 예외 처리.
 	ensureAlways(OverlappedComponent->ComponentTags.Num() == 1);
@@ -231,11 +231,26 @@ void AABStageGimmick::OnGateTriggerBeginOverlap(
 		return;
 	}
 
-	// 충돌이 안됐으면(비어 있으면) 스테이지 액터 생성.
-	GetWorld()->SpawnActor<AABStageGimmick>(
-		NewLocation,
-		FRotator::ZeroRotator
+	// 생성 트랜스폼.
+	const FTransform SpawnTransform(
+		NewLocation
 	);
+
+	// 충돌이 안됐으면(비어 있으면) 스테이지 액터 생성.
+	AABStageGimmick* NewGimmick
+		= GetWorld()->SpawnActorDeferred<AABStageGimmick>(
+			AABStageGimmick::StaticClass(),
+			SpawnTransform
+		);
+
+	if (NewGimmick)
+	{
+		// 새로 생성된 스테이지의 레벨 +1.
+		NewGimmick->SetStageNum(CurrentStageNum + 1);
+
+		// 생성 처리 완료.
+		NewGimmick->FinishSpawning(SpawnTransform);
+	}
 }
 
 void AABStageGimmick::OpenAllGates()
@@ -426,16 +441,21 @@ void AABStageGimmick::SpawnRewardBoxes()
 			= GetActorLocation() + RewardBoxLocation.Value
 			+ FVector(0.0f, 0.0f, 30.0f);
 
-		// 상자 생성.
-		AActor* ItemActor = GetWorld()->SpawnActor(
-			RewardBoxClass,
-			&WorldSpawnLocation,
-			&FRotator::ZeroRotator
+		const FTransform SpawnTransform(
+			WorldSpawnLocation
 		);
 
-		// 아이템 상자로 형변환.
+		// 상자 생성.
+		//AActor* ItemActor
 		AABItemBox* RewardBoxActor
-			= Cast<AABItemBox>(ItemActor);
+			= GetWorld()->SpawnActorDeferred<AABItemBox>(
+				RewardBoxClass,
+				SpawnTransform
+			);
+
+		// 아이템 상자로 형변환.
+		//AABItemBox* RewardBoxActor
+		//	= Cast<AABItemBox>(ItemActor);
 		if (RewardBoxActor)
 		{
 			// 상자에 태그 추가.
@@ -450,6 +470,9 @@ void AABStageGimmick::SpawnRewardBoxes()
 
 			// 생성된 박스를 배열에 추가.
 			RewardBoxes.Add(RewardBoxActor);
+
+			// 생성 완료 처리.
+			RewardBoxActor->FinishSpawning(SpawnTransform);
 		}
 	}
 }

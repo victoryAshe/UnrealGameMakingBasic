@@ -30,6 +30,13 @@ public:
 	// Sets default values for this actor's properties
 	AABStageGimmick();
 
+	// Getter/Setter.
+	FORCEINLINE int32 GetStateNum() const { return CurrentStageNum; }
+	FORCEINLINE void SetStageNum(int32 NewStageNum)
+	{
+		CurrentStageNum = NewStageNum;
+	}
+
 protected:
 	// 이 함수는 트랜스폼 변경 뿐 아니라, 다른 속성이 변경되더라도 호출됨.
 	virtual void OnConstruction(
@@ -149,4 +156,11 @@ protected:
 
 	// 아이템 상자 생성 함수.
 	void SpawnRewardBoxes();
+
+	// Stage Stat.
+	protected:
+		// Statge 생성 순번을 Stat으로 관리.
+		UPROPERTY(VisibleInstanceOnly, Category = Stat)
+		int32 CurrentStageNum;
+
 };
