@@ -2,9 +2,11 @@
 
 
 #include "ABAIController.h"
+#include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BlackboardData.h"
-#include "BehaviorTree/BehaviorTree.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "ABAI.h"
 
 AABAIController::AABAIController()
 {
@@ -37,6 +39,12 @@ void AABAIController::RunAI()
 	// 두 번째 Parameter가 *& type이므로 명시적 변수가 있어야 함.
 	if (UseBlackboard(BBAsset, BlackboardPtr)) // Use의 성공 여부를 반환.
 	{
+		// Pawn의 위치를 Blackboard에 저장.
+		Blackboard->SetValueAsVector(
+			BBKEY_HOMEPOS,
+			GetPawn()->GetActorLocation()
+		);
+
 		// BT 실행.
 		bool Result = RunBehaviorTree(BTAsset);
 
