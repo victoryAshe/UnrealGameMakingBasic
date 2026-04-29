@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Character/ABCharacterBase.h"
 #include "InputActionValue.h"
+#include "Interface/ABCharacterHUDInterface.h"
 #include "ABCharacterPlayer.generated.h"
 
 // 전방선언.
@@ -14,7 +15,9 @@ class UInputAction;
  *
  */
 UCLASS()
-class ARENABATTLE_API AABCharacterPlayer : public AABCharacterBase
+class ARENABATTLE_API AABCharacterPlayer : 
+	public AABCharacterBase,
+	public IABCharacterHUDInterface
 {
 	GENERATED_BODY()
 
@@ -85,4 +88,8 @@ protected:
 	// 현재 사용 중인 캐릭터 컨트롤 타입.
 	UPROPERTY(VisibleAnywhere, Category = CharacterControl)
 	ECharacterControlType CurrentCharacterControlType;
+
+	// Inherited via IABCharacterHUDInterface
+	virtual void SetupHUDWidget(
+		class UABHUDWidget* InHUDWidget) override;
 };

@@ -11,6 +11,10 @@
 DECLARE_MULTICAST_DELEGATE(FOnHpZeroDelegate);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnHpChangedDelegate, float /* CurrentHp */)
 
+// Stat 정보가 변경될 때 발행할 Delegate.
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnStatChangedDelegate, const FABCharacterStat& /* BaseStat */, const FABCharacterStat& /* ModifierStat */)
+
+
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ARENABATTLE_API UABCharacterStatComponent : public UActorComponent
 {
@@ -21,8 +25,7 @@ public:
 	UABCharacterStatComponent();
 
 protected:
-	// Called when the game starts
-	virtual void BeginPlay() override;
+	virtual void InitializeComponent() override;
 
 public:	
 	// Setter.
@@ -33,6 +36,16 @@ public:
 
 	void SetLevelStat(int32 InNewLevel);
 	FORCEINLINE float GetCurrentLevel() const { return CurrentLevel; }
+
+	FORCEINLINE void SetBaseStat(const FABCharacterStat& InBaseStat)
+	{
+		BaseStat = InBaseStat;
+		OnStatChanged.Broadcast(BaseStat, ModifierStat);
+	}
+
+	FORCEINLINE const FABCharacterStat& GetBaseStat() const { return BaseStat; }
+	FORCEINLINE const FABCharacterStat& GetModifierStat() const { return ModifierStat; }
+
 	FORCEINLINE void SetModifierStat(
 		const FABCharacterStat& InModifierStat)
 	{
@@ -59,6 +72,9 @@ public:
 
 	// Hp가 변동될 때마다 발행할 Delegate.
 	FOnHpChangedDelegate OnHpChanged;
+
+	// Stat 변경 시 발행할 Delegate.
+	FOnStatChangedDelegate OnStatChanged;
 
 protected:
 	// 체력 정보.
